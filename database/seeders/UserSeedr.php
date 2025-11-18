@@ -19,7 +19,8 @@ class UserSeedr extends Seeder
             'name' => 'Admin User',
             'cpf' => '00011122233', // CPF fixo
             'email' => 'admin@example.com',
-            'password' => Hash::make('12345678'), // Senha forte
+            'password' => Hash::make('12345678'),    // Senha forte
+            'role' => 'admin', // Definindo o papel como 'admin'
         ]);
 
         // 2. Cria 50 usuários adicionais usando o Factory
