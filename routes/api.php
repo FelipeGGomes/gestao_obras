@@ -12,4 +12,5 @@ Route::post('/', [LoginController::class, 'login'])->name('login');
 Route::group(['middleware' => ['auth:sanctum']], function () {
     // Rotas protegidas aqui
     Route::get('/users', [UserController::class, 'index']);
+    Route::post('/logout/{user}', [LoginController::class, 'logout'])->name('logout');
 });

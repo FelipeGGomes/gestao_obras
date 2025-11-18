@@ -11,6 +11,10 @@ class UserController extends Controller
     public function index()
     {
         $user = User::get();
-        dd($user);
+
+        return response()->json([
+                'status' => 'OK',
+                'user' => $user,                
+            ], status: 200);
     }
 }
