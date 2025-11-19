@@ -11,32 +11,51 @@ use Illuminate\Http\JsonResponse;
 
 class LoginController extends Controller
 {
-    public function login(Request $request)
-    {
-        if(Auth::attemptWhen([
-            'cpf' => $request->cpf,
-            'password' => $request->password,
-        ])){
+  public function login(Request $request)
+{
+    // validação opcional
+    $request->validate([
+        'cpf' => 'required',
+        'password' => 'required',
+    ]);
 
-            //Recuperar os dados do usuario
-            $user = Auth::user();
 
-            //Retornando o Token
-            $token = $request->user()->createToken('api_token')->plainTextToken;
+    if (Auth::attempt([
+        'cpf' => $request->cpf,
+        'password' => $request->password
+    ])) {
 
-            return response()->json([
-                'status' => 'OK',
-                'token' => $token,
-                'user' => $user,                
-            ], status: 201);
+        $user = Auth::user();
 
-        }else{
+
+        if ($user->status !== '1') {
+
+
+            Auth::logout();
+
             return response()->json([
                 'status' => 'error',
-                'message' => 'Invalid credentials'
-            ], 401);
+                'message' => 'Usuário desativado'
+            ], 403);
         }
+
+        // OK → gerar token
+        $token = $user->createToken('api_token')->plainTextToken;
+
+        return response()->json([
+            'status' => 'OK',
+            'token' => $token,
+            'user' => $user
+        ], 200);
     }
+
+    return response()->json([
+        'status' => 'error',
+        'message' => 'CPF ou senha inválidos'
+    ], 401);
+}
+
+
 
     public function logout(User $user): JsonResponse
     {
