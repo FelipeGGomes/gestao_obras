@@ -60,14 +60,48 @@ class UsersController extends Controller
      * Show the form for editing the specified resource.
      */
    
-  public function update(Request $request, string $id)
+public function update(Request $request, string $id)
 {
     $user = User::findOrFail($id);
-    $user->update($request->all());
+
+    // Validação opcional
+    $validated = $request->validate([
+        'name' => 'string|max:255',
+        'email' => 'email|max:255',
+        'cpf' => 'string|unique:users,cpf,' . $user->id,
+        'password' => 'nullable|string|min:6',
+        'status' => 'nullable|in:0,1',
+        'role' => 'nullable|in:admin,gerente,colaborador',
+    ]);
+
+    // Atualiza os dados do usuário (exceto role)
+    if (isset($validated['password'])) {
+        $validated['password'] = bcrypt($validated['password']);
+    }
+
+    $user->update(collect($validated)->except('role')->toArray());
+
+    // Se o usuário enviou um role novo → atualiza o role no spatie
+    if ($request->has('role')) {
+
+        // Remove todos os roles antigos
+        $user->syncRoles([]);
+
+        // Aplica o novo role
+        $user->assignRole($request->role);
+    }
+
     return response()->json([
         'status' => 'OK',
-        'user' => $user,                
-    ], status: 200);
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'cpf' => $user->cpf,
+            'status' => $user->status,
+            'role' => $user->getRoleNames()->first(), // mostra o role correto
+        ],
+    ], 200);
 }
 
     /**

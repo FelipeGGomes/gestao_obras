@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\UsersController;
+use App\Http\Controllers\Etapa\EtapaController;
 use App\Http\Controllers\Obras\ObrasController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,3 +17,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
 // Obras (regras estão no controller)
 Route::apiResource('/obras', ObrasController::class);
+
+// Etapas (regras estão no controller)
+Route::apiResource('/etapas', EtapaController::class);
