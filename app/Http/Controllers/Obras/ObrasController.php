@@ -2,14 +2,24 @@
 
 namespace App\Http\Controllers\Obras;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Obras;
 
-class ObrasController extends Controller
+class ObrasController extends BaseController
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct()
+    {
+        // Somente admin e gerente podem criar, atualizar e excluir
+        $this->middleware(['auth:sanctum', 'role:admin|gerente'])
+        ->only(['store', 'update', 'destroy']);
+
+        // Qualquer usuário autenticado pode visualizar
+        $this->middleware(['auth:sanctum'])
+            ->only(['index', 'show']);
+    }
+
     public function index()
     {
         return response()->json([
@@ -17,39 +27,52 @@ class ObrasController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        Obras::create($request->all());
+        $validateData = $request->validate([
+            'nome_obra' => 'required|string|max:255',
+            'descricao' => 'nullable|string',
+            'data_inicio' => 'nullable|date',
+            'data_fim' => 'nullable|date',
+            'fim_real' => 'nullable|date',
+            'status' => 'required|in:Em Planejamento,Em Andamento,Cancelada,Concluída',
+        ]);
+
+        $validateData['user_id'] = Auth::id();
+
+        $obra = Obras::create($validateData);
+
         return response()->json([
             'message' => 'Obra criada com sucesso!',
-        ]);
+            'obra' => $obra,
+        ], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         return response()->json([
             'obra' => Obras::findOrFail($id),
         ]);
     }
-    /**
-     * Update the specified resource in storage.
-     */
+
     public function update(Request $request, string $id)
     {
-        //
+        $obra = Obras::findOrFail($id);
+        $obra->update($request->all());
+
+        return response()->json([
+            'message' => 'Obra atualizada com sucesso!',
+            'obra' => $obra,
+        ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(string $id)
     {
-        //
+        $obra = Obras::findOrFail($id);
+        $obra->delete();
+
+        return response()->json([
+            'message' => 'Obra excluída com sucesso!'
+        ]);
     }
 }

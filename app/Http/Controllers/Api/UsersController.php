@@ -26,7 +26,25 @@ class UsersController extends Controller
      */
     public function store(Request $request)
     {
-        User::create($request->all());
+        $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'cpf' => 'required|string|unique:users',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|min:6',
+        'role' => 'required|in:admin,gerente,colaborador',
+    ]);
+
+    $data['password'] = bcrypt($data['password']);
+
+    $user = User::create($data);
+
+    $user->assignRole($data['role']);
+
+    return response()->json([
+        'message' => 'Usuário criado com sucesso!',
+        'user' => $user,
+        'roles' => $user->getRoleNames(),
+    ], 201);
     }
 
   

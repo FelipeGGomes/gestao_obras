@@ -2,15 +2,17 @@
 
 use App\Http\Controllers\Api\LoginController;
 use App\Http\Controllers\Api\UsersController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Obras\ObrasController;
 use Illuminate\Support\Facades\Route;
 
-//Rota Pública
+// Login
 Route::post('/', [LoginController::class, 'login'])->name('login');
 
-//Rota Restritas
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    // Rotas protegidas aqui
-    Route::ApiResource('/users', UsersController::class);
-    Route::post('/logout/{user}', [LoginController::class, 'logout'])->name('logout');
+// Rotas protegidas
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::apiResource('/users', UsersController::class);
+    Route::post('/logout/{user}', [LoginController::class, 'logout']);
 });
+
+// Obras (regras estão no controller)
+Route::apiResource('/obras', ObrasController::class);
